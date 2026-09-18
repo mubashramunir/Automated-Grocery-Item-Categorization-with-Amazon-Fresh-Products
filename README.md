@@ -1,38 +1,45 @@
-"Automated Grocery Item Categorization Using YOLOv8: A Case Study with Amazon Fresh Products." It includes the following key elements:
+# Automated Product Categorization with YOLOv8 — Amazon Fresh Case Study
 
-Google Drive Integration:
+An end-to-end computer vision pipeline that detects and categorizes retail products from images using a custom-trained YOLOv8 object detection model — built to explore how automated visual categorization could reduce manual tagging effort in e-commerce catalog management.
 
-The script mounts Google Drive to access datasets and resources stored there.
+## Overview
 
+Large retail catalogs rely heavily on manual product tagging, which is slow and error-prone at scale. This project tests whether a custom object detection model can automatically identify and categorize products from images alone, using Amazon Fresh's product catalog as a case study.
 
-Required Packages:
+The pipeline covers the full lifecycle: **scraping training images → building a labeled dataset → training a YOLOv8 model → validating predictions → deploying an interactive demo.**
 
-It installs ultralytics (for YOLOv8) and opencv-python-headless for image processing.
+## What it does
 
+- **Custom data collection** — an automated Playwright scraper pulls product images directly from Amazon Fresh category pages, handling dynamic page scrolling and lazy-loaded images
+- **46-class object detection model** — trained with YOLOv8 across a broad product catalog spanning fresh produce, meat & seafood, dairy, and personal care items (e.g. apples, chicken, seafood, cereals, shampoo, foundation)
+- **Iterative hyperparameter tuning** — multiple training passes adjusting epochs, learning rate, optimizer (AdamW), weight decay, and warmup schedule to improve detection accuracy
+- **Human-in-the-loop validation tool** — a custom review widget steps through predictions image-by-image so results can be manually marked correct/incorrect, supporting a feedback loop for model improvement
+- **Model export & evaluation** — trained model exported to ONNX format and benchmarked with per-class mAP scores
+- **Interactive demo** — a Gradio web app where a user uploads any image and receives detected objects with bounding boxes and category labels in real time
 
-Dataset Configuration:
+## Tech stack
 
-The script defines a base path to the dataset and prepares a YAML file for training configuration.
-It defines 46 categories, including items like apples, avocados, Beef, citrusfruits, Frozen Pizza, etc.
+`Python` · `YOLOv8 (Ultralytics)` · `OpenCV` · `Playwright` (web scraping) · `Gradio` (demo UI) · `ONNX` (model export) · Google Colab / Drive (training environment)
 
+## Pipeline
 
-Writing the YAML file:
+1. **Scrape** — `scrape_images()` collects product images from Amazon Fresh category pages
+2. **Configure** — dataset paths and 46 class names are written to a `dataset.yaml` file for YOLO training
+3. **Train** — YOLOv8n is fine-tuned on the custom dataset, with a second pass using tuned hyperparameters (AdamW, weight decay, warmup)
+4. **Validate** — the `ModelReviewer` widget displays predictions on held-out images for manual correct/incorrect labeling
+5. **Evaluate** — per-class mAP is calculated from validation results
+6. **Export** — model is exported to ONNX for lighter-weight inference
+7. **Deploy** — a Gradio interface exposes the model for live image upload and detection
 
-The script generates a YAML configuration file that specifies the paths to training, validation, and test data, along with the number of categories and their names.
+## Results
 
-Model Training:
+*(Add your actual validation numbers here, e.g.: "Achieved X% mAP@0.5 across 46 classes after hyperparameter tuning" — pull this from your `results.results_dict` output.)*
 
-The model is trained based on hyper-tuning parameters. 
+## Try it
 
-Loading YOLOv8 Model:
+The Gradio app (`interface.launch()`) allows anyone to upload a product image and get back detected categories with bounding boxes — a working demo of the model rather than just training code.
 
-The script checks if the trained model exists, and if found, loads it using the YOLO class from the ultralytics library.
+## Notes / limitations
 
-Performing Inference:
-
-The model performs inference on the uploaded image.
-The results are displayed, showing detected objects with bounding boxes.
-
-Printing Results:
-
-A function print_results(results) is defined to print the detected class and its confidence score.
+- Trained on a relatively small custom dataset scraped from a single source; performance would need validation against a larger, more balanced dataset for production use
+- Class list mixes grocery and personal-care items, reflecting Amazon Fresh's actual catalog breadth rather than a narrow "groceries only" scope
